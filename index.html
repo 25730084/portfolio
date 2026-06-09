@@ -489,8 +489,6 @@
         <div class="visual-area" id="visual-area">
             <div class="scanline-effect"></div>
             <div class="key-visual-display">
-                <div class="visual-title" id="visual-title">[ 연결 대기 중 ]</div>
-                <div class="visual-elements" id="visual-desc">로그 데이터 수신을 기다리고 있습니다...</div>
             </div>
             <div class="inventory-bar">
                 <span>ACCESS_TOKEN:</span>
@@ -1002,8 +1000,6 @@
             document.getElementById('location-name').innerText = scene.location;
             document.getElementById('speaker-name').innerText = scene.speaker;
             
-            document.getElementById('visual-title').innerText = scene.visualTitle || `NODE: ACTIVE`;
-            document.getElementById('visual-desc').innerText = scene.visualDesc || `실시간 패킷 스트림 분석 중...`;
             
             const portraitArt = asciiPortraits[scene.portrait] || asciiPortraits.sys;
             document.getElementById('portrait-art').innerText = portraitArt;
