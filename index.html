@@ -1,0 +1,1230 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON PIGS SURVIVAL</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Seontack.woff');
+
+        :root {
+            --cold-blue: #00a2ff;
+            --electric-cyan: #00ffd2;
+            --pure-white: #ffffff;
+            --danger-red: #ff2a2a;
+            --purple-neon: #bd00ff;
+            --green-neon: #39ff14;
+            --deep-bg: #0b0f1a;
+            --dark-panel: #141a26;
+            --border-blue: #1e293b;
+            --font-game: 'Seontack', sans-serif;
+            --text-gray: #94a3b8;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        body {
+            background-color: var(--deep-bg);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 162, 255, 0.1) 0%, transparent 80%),
+                linear-gradient(var(--border-blue) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-blue) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: #e2e8f0;
+            font-family: var(--font-game);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 100;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* -------------------------------------------
+           🚨 첫 화면 인트로 및 동영상 배경 영역 레이아웃 전면 수정
+        ------------------------------------------- */
+        #intro-screen {
+            position: fixed;
+            top: 0; left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background-color: #000; /* 동영상 로드 전 기본 배경 */
+            z-index: 9999; /* 무조건 모든 HUD와 게임 화면보다 위에 오도록 설정 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s, visibility 1s;
+            overflow: hidden;
+        }
+
+        /* 동영상이 무조건 화면 전체를 채우고 글자 뒤에 깔리도록 고정 */
+        .intro-video-bg {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            object-fit: cover; /* 비율 유지하며 화면 꽉 채움 */
+            transform: translate(-50%, -50%);
+            z-index: 1; /* 가장 아래 바닥 */
+            opacity: 0.6; /* 글씨가 잘 보이도록 약간 어둡게 조절 */
+            pointer-events: none;
+        }
+
+        /* 인트로 내부 텍스트 콘텐츠들이 영상 위로 올라오도록 강제 지정 */
+        .intro-content {
+            position: relative;
+            z-index: 10; /* 비디오(z-index: 1)보다 위에 정렬 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .intro-visual-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.1;
+            z-index: 2;
+            font-size: 8px;
+            color: var(--cold-blue);
+            font-family: monospace;
+            overflow: hidden;
+            white-space: pre;
+            pointer-events: none;
+        }
+
+        .intro-title { 
+            font-size: 48px; 
+            color: var(--pure-white); 
+            text-shadow: 0 0 25px rgba(0, 162, 255, 0.8), 0 0 5px #000;
+            letter-spacing: 10px;
+            margin-bottom: 10px;
+        }
+
+        .start-btn {
+            padding: 18px 50px;
+            border: 2px solid var(--cold-blue);
+            color: var(--cold-blue);
+            background: rgba(11, 15, 26, 0.85);
+            cursor: pointer;
+            letter-spacing: 6px;
+            font-weight: bold;
+            transition: 0.3s;
+            font-family: var(--font-game);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 162, 255, 0.3);
+            font-size: 14px;
+        }
+
+        .start-btn:hover {
+            background: var(--cold-blue);
+            color: #000;
+            box-shadow: 0 0 25px var(--cold-blue);
+        }
+
+        /* 게임 메인 HUD 및 컨텐츠 레이아웃 */
+        .top-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            background: rgba(11, 15, 26, 0.95);
+            border-bottom: 2px solid var(--cold-blue);
+            box-shadow: 0 0 20px rgba(0, 162, 255, 0.2);
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-title-main {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--pure-white);
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--cold-blue);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 25px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            width: 120px;
+        }
+
+        .stat-label { 
+            font-size: 9px; 
+            color: var(--cold-blue); 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .stat-bar-bg {
+            height: 5px;
+            background: #0f172a;
+            border: 1px solid var(--border-blue);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #sync-fill { background-color: var(--pure-white); box-shadow: 0 0 10px var(--pure-white); }
+        #integ-fill { background-color: var(--electric-cyan); box-shadow: 0 0 10px var(--electric-cyan); }
+        #noise-fill { background-color: var(--danger-red); box-shadow: 0 0 10px var(--danger-red); }
+
+        .location-info { 
+            text-align: right; 
+            color: var(--electric-cyan); 
+            font-size: 11px; 
+            border: 1px solid var(--cold-blue);
+            padding: 4px 12px;
+            background: rgba(0, 162, 255, 0.1);
+            letter-spacing: 1.5px;
+        }
+
+        #game-screen {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 25px;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 70px);
+        }
+
+        .visual-area {
+            flex: 2.6;
+            border: 1px solid var(--border-blue);
+            background: #05070a;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            min-height: 380px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 🚨 각 장면에 동영상을 배경으로 깔아주는 스타일 추가 */
+        .scene-video-bg {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            opacity: 0.4; /* 자막 가독성을 위해 살짝 흐리게 처리 */
+            pointer-events: none;
+        }
+
+        .key-visual-display {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 25px;
+            z-index: 10; /* 비디오 배경보다 위에 오도록 강제 */
+        }
+
+        .visual-title {
+            font-size: 16px;
+            color: var(--electric-cyan);
+            margin-bottom: 12px;
+            letter-spacing: 2.5px;
+            text-shadow: 0 0 10px rgba(0, 255, 210, 0.6), 0 0 5px #000;
+        }
+
+        .visual-elements {
+            font-size: 12px;
+            color: var(--pure-white); /* 가독성을 위해 흰색 계열로 조정 */
+            line-height: 1.7;
+            max-width: 650px;
+            white-space: pre-wrap;
+            text-shadow: 0 0 8px #000, 0 0 3px #000; /* 비디오 위에서 잘 보이도록 그림자 추가 */
+        }
+
+        .scanline-effect {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .inventory-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            font-size: 9px;
+            color: var(--pure-white);
+            background: rgba(20, 26, 38, 0.85);
+            padding: 4px 10px;
+            border: 1px solid var(--border-blue);
+            letter-spacing: 1px;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .inventory-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #475569;
+        }
+        .inventory-dot.active {
+            background: var(--electric-cyan);
+            box-shadow: 0 0 8px var(--electric-cyan);
+        }
+
+        .dialog-container {
+            flex: 0.9;
+            display: flex;
+            gap: 20px;
+            min-height: 140px;
+            max-height: 190px;
+        }
+
+        .portrait-box {
+            width: 180px;
+            background: var(--dark-panel);
+            border: 1px solid var(--border-blue);
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--electric-cyan);
+            font-size: 11px;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .portrait-art {
+            font-family: monospace;
+            font-size: 8px;
+            line-height: 1;
+            color: var(--electric-cyan);
+            text-shadow: 0 0 5px var(--electric-cyan);
+            margin-bottom: 8px;
+            white-space: pre;
+        }
+
+        .portrait-name {
+            font-size: 10px;
+            color: var(--pure-white);
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+
+        .dialog-box {
+            flex-grow: 1;
+            background: var(--dark-panel);
+            border: 1px solid var(--border-blue);
+            padding: 15px 20px;
+            position: relative;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+        }
+
+        .speaker-tag {
+            background: var(--cold-blue);
+            color: #000;
+            padding: 3px 14px;
+            font-weight: bold;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+
+        #dialog-text {
+            line-height: 1.6;
+            font-size: 13.5px;
+            white-space: pre-wrap;
+            color: #cbd5e1;
+        }
+
+        .choices-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding-bottom: 5px;
+        }
+
+        button.choice-btn {
+            background: #1e293b;
+            border: 1px solid var(--border-blue);
+            color: #94a3b8;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-family: var(--font-game);
+            text-align: left;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 70px;
+            border-radius: 4px;
+        }
+
+        button.choice-btn:hover:not(:disabled) {
+            background: #273549;
+            border-color: var(--cold-blue);
+            color: var(--pure-white);
+            box-shadow: inset 4px 0 0 var(--cold-blue);
+        }
+
+        .stat-badges {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .badge {
+            font-size: 8px;
+            padding: 1px 5px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .b-sync { background: rgba(255, 255, 255, 0.1); color: var(--pure-white); border: 1px solid var(--pure-white); }
+        .b-integ { background: rgba(0, 255, 210, 0.1); color: var(--electric-cyan); border: 1px solid var(--electric-cyan); }
+        .b-noise { background: rgba(255, 42, 42, 0.1); color: var(--danger-red); border: 1px solid var(--danger-red); }
+
+        /* 연출 효과 */
+        .visual-danger { border-color: var(--danger-red); box-shadow: inset 0 0 30px rgba(255, 0, 0, 0.4); }
+        .visual-purple { border-color: var(--purple-neon); box-shadow: inset 0 0 30px rgba(189, 0, 255, 0.3); }
+        .visual-green { border-color: var(--green-neon); box-shadow: inset 0 0 30px rgba(57, 255, 20, 0.3); }
+        .visual-glitch { animation: glitch 0.15s infinite; }
+        @keyframes glitch { 
+            0% { transform: translate(1px, 0); filter: hue-rotate(45deg); } 
+            50% { transform: translate(-1px, 1px); filter: hue-rotate(90deg); } 
+            100% { transform: translate(0, 0); filter: hue-rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+            <video id="bg-video" class="intro-video-bg" autoplay loop playsinline>
+            <source src="VIDEO/cover video.mp4" type="video/mp4">
+            <source src="cover video.mp4" type="video/mp4">
+        </video>
+
+        <div class="intro-visual-bg" id="matrix-bg"></div>
+        
+        <div class="intro-content">
+            <div style="font-size: 10px; color: var(--cold-blue); margin-bottom: 20px; letter-spacing: 4px;">[ ANTHRACITE CITY DATA LOG: CONNECTING... ]</div>
+            <h1 class="intro-title">NEON PIGS</h1>
+            <h1 class="intro-title" style="font-size: 32px; margin-top: -10px; color: var(--electric-cyan); margin-bottom: 5px;">SURVIVAL</h1>
+            <div style="margin-bottom: 45px; color: var(--text-gray); letter-spacing: 2px; font-size: 12px;"></div>
+            <button class="start-btn" onclick="startGame()">ACCESS CORE</button>
+        </div>
+    </div>
+
+    <div class="top-hud">
+        <div class="hud-left">
+            <div class="game-title-main">NEON PIGS SURVIVAL</div>
+            <div style="font-size: 8px; color: var(--cold-blue);">SYS_VER: 2.5-BLUE-CORE</div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-label">SYNC <span id="sync-val">0</span>%</div>
+                <div class="stat-bar-bg"><div id="sync-fill" class="stat-bar-fill"></div></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">INTEG <span id="integ-val">0</span>%</div>
+                <div class="stat-bar-bg"><div id="integ-fill" class="stat-bar-fill"></div></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">NOISE <span id="noise-val">0</span>%</div>
+                <div class="stat-bar-bg"><div id="noise-fill" class="stat-bar-fill"></div></div>
+            </div>
+        </div>
+        <div id="location-name" class="location-info">NODE: OFFLINE</div>
+    </div>
+
+    <div id="game-screen">
+        <div class="visual-area" id="visual-area">
+            <div class="scanline-effect"></div>
+            <div class="key-visual-display">
+            </div>
+            <div class="inventory-bar">
+                <span>ACCESS_TOKEN:</span>
+                <div id="token-indicator" class="inventory-dot"></div>
+                <span id="token-text" style="color: var(--text-gray);">NOT ACQUIRED</span>
+            </div>
+        </div>
+
+        <div class="dialog-container">
+            <div class="portrait-box" id="portrait-box">
+                <div class="portrait-art" id="portrait-art"></div>
+                <div class="portrait-name" id="portrait-name">SYS</div>
+            </div>
+            <div class="dialog-box">
+                <div class="speaker-tag" id="speaker-name">BOOT_LOG</div>
+                <div id="dialog-text"></div>
+            </div>
+        </div>
+
+        <div class="choices-area" id="choices-area"></div>
+    </div>
+
+    <script>
+        const state = {
+            sync: 0,
+            integ: 0,
+            noise: 0,
+            accessToken: false,
+            currentScene: 'start',
+            isTyping: false,
+            userInteracted: false
+        };
+
+        let currentAudio = null;
+
+        const asciiPortraits = {
+            p3: `  _.._   _.._\n ( _  ) (  _ )\n  \\  /   \\  /\n  (oo)   (oo)\n  _||_   _||_`,
+            p1: `  _.._   _.._\n ( _  ) (  _ )\n  [oo]   [oo]\n  /==\\   /==\\\n  _||_   _||_`,
+            wolf: `  /\\_    _/\\\n /  _\\__/_  \\\n | / \\  / \\ |\n |\\_  \\/  _/|\n /  \\_  _/  \\\n      \\/`,
+            pz: `   .--------.\n  /  -====-  \\\n |  |'  ..  '| |\n |  |   _O_  | |\n  \\  \\______/  /\n   '----------'`,
+            rat: `   (\\_/)\n   (o.o)\n  /     \\\n /_  _  _\\\n   \\/ \\/`,
+            mother: ` [||||||||||]\n [|  [■■]  |]\n [|  [■■]  |]\n [||||||||||]`,
+            master: `   .--------.\n  /  * * * \\\n | * OO   * |\n | * OO   * |\n  \\  * * * /\n   '--------'`,
+            sys: `   .-'''''-.\n  / _     _ \\\n | (o)   (o) |\n |     ▲     |\n  \\   ---   /\n   '-_..._-'`
+        };
+
+        const scenes = {
+            start: {
+                location: 'SECTOR_00: UNDER_STREET',
+                speaker: 'P-3',
+                portrait: 'p3',
+                // 🚨 VIDEO 폴더의 S1 video.mp4를 루트 기준 상대경로로 지정
+                videoSrc: [
+                "VIDEO/S1 video.mp4"
+                ],
+                audioSrc: "TTS/S1.mp3",
+                text: [
+                    { type: 'narrative', content: "네온 가로등 불빛이 오염된 하수구 빗물에 번지는 디스토피아 안트라사이트 시티." },
+                    { type: 'dialog', speaker: 'P-3', content: "WOLF 보안망의 올가미가 턱밑까지 조여온다... 가상 고글에 찍힌 내 신경 데이터가 뜨겁게 끓는군.\n앞을 가로막은 보안 방벽실 너머, 첫째 형 P-1의 둔탁한 해머링 소리가 들린다. 어서 돌파해야만 해!" }
+                ],
+                choices: [
+                    { label: "🧱 외골격 슈트를 장착한 채 강철 방벽을 구축 중인 첫째 형 P-1과 합류한다", stats: {s:25, i:20, n:10}, next: 'meet_p1' },
+                    { label: "📡 지상 노출의 위험을 감수하고 상부 공용 안테나를 즉각적으로 강제 해킹한다", stats: {s:45, i:5, n:25}, next: 'hack_terminal' }
+                ]
+            },
+            meet_p1: {
+                location: 'SECTOR_01: RESISTANCE_WALL',
+                speaker: 'P-1',
+                portrait: 'p1',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                "VIDEO/S2 video.mp4"
+                ],
+                audioSrc: "TTS/S2.mp3",
+                text: [
+                    { type: 'narrative', content: "강철 먼지가 안개처럼 사방을 메운 대피실. P-1이 삐걱이는 외골격을 틀어쥐며 울부짖는다." },
+                    { type: 'dialog', speaker: 'P-1', content: "\"무식하지만 단단하게 지어올린 이 방벽만이 우리의 유일한 보루다...!\nP-3, 내 건설 외골격 슈트의 전력이 바닥나고 있어. 네 정밀 고글의 동조 코드로 내 외골격 제어 루프 출력을 뇌파와 융합해 다오!\"" }
+                ],
+                choices: [
+                    { label: "🧠 신경 오버드라이브 가동: 내 전뇌 링크와 P-1의 슈트 루프를 급속 정렬한다", stats: {s:35, i:15, n:15}, next: 'p1_success' },
+                    { label: "⚡ 수동 전류 충전: 비상 전원 배터리 허브를 한계 돌파 개방하여 수동으로 급전한다", stats: {s:10, i:35, n:5}, next: 'p1_charge' }
+                ]
+            },
+            p1_success: {
+                location: 'SECTOR_01: SYNCED_BARRIER',
+                speaker: 'P-1',
+                portrait: 'p1',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                    "VIDEO/S2_1 video.mp4"
+                ],
+                
+                visualTitle: '동기화 성공 - 홀로그램 장막',
+                visualDesc: 'P-1의 방벽에 강력한 파란색 전자기 위장 교란막이 기동하기 시작합니다.',
+                text: [
+                    { type: 'dialog', speaker: 'P-1', content: "\"오오...! 내 영혼과 철근 슈트가 완전히 하나로 고정된 느낌이다! 이 파란 차폐벽이 늑대들의 감시를 멋지게 속여낼 것이다.\n어서 가거라, P-3! 지하수로 깊숙이 숨은 정보 브로커 라따뚜이를 찾아내!\"" }
+                ],
+                choices: [
+                    { label: "🐀 P-1의 은밀한 지도를 받아 하수 배관 틈에 은거한 기계 쥐 라따뚜이를 찾아간다", stats: {s:15, i:25, n:-15}, next: 'find_rat' },
+                    { label: "📡 확보된 전력을 가로채 지상 통신 중계국 데이터 전송 포트로 전광석화처럼 질주한다", stats: {s:40, i:10, n:20}, next: 'hack_terminal' }
+                ]
+            },
+            p1_charge: {
+                location: 'SECTOR_01: OVERLOAD_SHIELD',
+                speaker: 'P-1',
+                portrait: 'p1',
+                visualStyle: 'visual-purple',
+                videoSrc: [
+                "VIDEO/S3 video.mp4"
+                ],
+                audioSrc: "TTS/S3.mp3",
+                text: [
+                    { type: 'narrative', content: "무리하게 배터리를 과충전하여 보라색 스파크와 소음 노이즈가 주변으로 폭발하듯 방출되었으며, 추격 유닛이 몰려오기 전 도망쳐야 한다." },
+                    { type: 'dialog', speaker: 'P-1', content: "\"크아아! 관절 모터가 불타서 타격을 받겠지만... 어쨌든 이 통로는 무쇠처럼 단단히 잠갔다!\n하지만 충전 폭음과 노이즈가 주위에 흩뿌려졌으니, 추격대 유닛이 오기 전에 여기를 벗어나라!\"" }
+                ],
+                choices: [
+                    { label: "🐀 소음이 감시 센서에 기록되기 전 신속하게 하단의 라따뚜이 비밀 기지로 대피한다", stats: {s:10, i:35, n:15}, next: 'find_rat' },
+                    { label: "📡 방출된 과전류 임펄스를 코드로 엮어 상부 통신 서버 포트를 단숨에 강제 셧다운한다", stats: {s:30, i:10, n:35}, next: 'hack_terminal' }
+                ]
+            },
+            find_rat: {
+                location: 'SECTOR_03: UNDER_SEWER',
+                speaker: '라따뚜이',
+                portrait: 'rat',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                "VIDEO/S4 video.mp4"
+                ],
+                audioSrc: "TTS/S4.mp3",
+                text: [
+                    { type: 'narrative', content: "부식된 가스 파이프들 사이에서 냉각수의 기괴한 웅웅 소리와 함께 라따뚜이가 꼬리를 튕기며 등장한다." },
+                    { type: 'dialog', speaker: '라따뚜이', content: "\"수배 로그가 시뻘겋게 뜬 녀석이 제 발로 걸어왔군, P-3.\n네 몸뚱이의 데이터 무결성(INTEG) 상태가 얼마나 보존되어 있는지 스캔해보지. 지저분한 패킷 누출자가 섞여 있다면 거래는 없다!\"" }
+                ],
+                choices: [
+                    { 
+                        label: "🔌 [무결성 스캔 허용] 데이터 보호막을 일시 정지하고 라따뚜이의 스캔 감지를 허용한다", 
+                        stats: {s:15, i:20, n:-5},
+                        action: () => {
+                            if (state.integ >= 20) {
+                                renderScene('rat_helper');
+                            } else {
+                                renderScene('rat_betrayal');
+                            }
+                        }
+                    },
+                    { label: "🏃 거래는 관두고 은폐 고글의 파워를 최대 출력으로 전개하여 통신 터미널실로 돌격한다", stats: {s:35, i:-10, n:25}, next: 'hack_terminal' }
+                ]
+            },
+            rat_helper: {
+                location: 'SECTOR_03: DATA_SHIELD',
+                speaker: '라따뚜이',
+                portrait: 'rat',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                "VIDEO/S5 video.mp4"
+                ],
+                audioSrc: "TTS/S5.mp3",
+                text: [
+                    { type: 'narrative', content: "무결성 계수가 쓸만하다고 판단한 라따뚜이가 오염 데이터 자국을 세척해주고, 적외선 이빨을 피해갈 수 있는 우회 패치를 시스템 포트에 이관해 준다." },
+                    { type: 'dialog', speaker: '라따뚜이', content: "\"무결성 계수가 쓸만하군. 네 더러운 오염 데이터 자국을 세척해주마.\n보안 감시망의 적외선 이빨을 교묘히 피해 갈 수 있는 우회 패치도 시스템 포트에 이관했다.\"" }
+                ],
+                choices: [
+                    { label: "📦 우회 패치를 전뇌에 적용하고 둘째 형 PZ의 핵심 제어타워 내부로 잠입한다", stats: {s:20, i:30, n:-20}, next: 'meet_pz' },
+                    { label: "📡 필터 암호를 가동하여 공용 통신 안테나의 위성 추적 대역을 완전히 강탈해 우회한다", stats: {s:45, i:15, n:10}, next: 'hack_terminal' }
+                ]
+            },
+            rat_betrayal: {
+                location: 'SECTOR_03: TRAP_TRIGGERED',
+                speaker: '라따뚜이',
+                portrait: 'rat',
+                visualStyle: 'visual-danger',
+                videoSrc: [
+                    "VIDEO/S4 video.mp4"
+                ],
+                visualTitle: '무결성 감지 실패 - 위치 노출',
+                visualDesc: '무결성 상태 부족으로 스캔 실패. 라따뚜이가 전송망에 연결 패킷 정보를 신고했습니다.',
+                text: [
+                    { type: 'dialog', speaker: '라따뚜이', content: "\"시스템 오염도가 한계를 넘었잖아! 내 기기까지 타격을 주겠어, 찍찍! 미안하지만 네 위치 좌표를 W.O.L.F에 팔아넘기지.\"" },
+                    { type: 'narrative', content: "배관 사방의 감시 비상등이 기괴한 경고음과 함께 피처럼 붉게 타오르기 시작한다!" }
+                ],
+                choices: [
+                    { label: "⚡ 비상 탈출: 락 아웃된 댐 제어용 수문 밸브를 온몸으로 충돌 돌파한다", stats: {s:15, i:-20, n:35}, next: 'wolf_hunt' },
+                    { label: "🕵️ 고스트 위장: 전자기 오인 더미 패킷을 광범위하게 뿌려 흔적을 흐리며 도망친다", stats: {s:30, i:-35, n:20}, next: 'meet_pz' }
+                ]
+            },
+            hack_terminal: {
+                location: 'SECTOR_01: PUBLIC_PORT',
+                speaker: 'P-3',
+                portrait: 'p3',
+                videoSrc: [
+                "VIDEO/S2_1 video.mp4"
+                ],
+                audioSrc: "TTS/S2_1.mp3",
+                text: [
+                    { type: 'narrative', content: "신경 동기화율(SYNC)을 올려 WOLF의 감시를 피한다." },
+                    { type: 'dialog', speaker: 'P-3', content: "신경 동기화율(SYNC)을 극한으로 끌어올릴 터널을 구축하자.\n하지만 과충전된 연산 노이즈 정보가 유출되어 집행견 WOLF가 침투 경로를 잡으면 완전히 끝장이야!" }
+                ],
+                choices: [
+                    { label: "🛰️ 초월적 동조: 마이크로 임펄스 오버클럭을 최대 동기율로 구동한다", stats: {s:45, i:-15, n:35}, next: 'check_wolf_status' },
+                    { label: "🔒 정합 연결: 대역폭 오차 보안 필터를 한 땀 한 땀 우회하며 수동 연결한다", stats: {s:25, i:25, n:-10}, next: 'meet_pz' }
+                ]
+            },
+            check_wolf_status: {
+                location: 'SYS_LOG: THREAT_SCAN',
+                speaker: 'SYSTEM',
+                portrait: 'sys',
+                videoSrc: [
+                    "VIDEO/S2_1 video.mp4"
+                ],
+                text: [
+                    { type: 'narrative', content: "보안 메인프레임에서 오동작 패킷 패턴 감지 및 전파 감쇄 측정을 진행하고 있습니다." }
+                ],
+                choices: [
+                    {
+                        label: "⚠️ [센서 기동] 내 신경망 주변에 퍼진 전자기 경보 위협 등급을 강제 계측한다",
+                        stats: {s:15, i:5, n:15},
+                        action: () => {
+                            if (state.noise >= 50) {
+                                renderScene('wolf_hunt');
+                            } else {
+                                renderScene('meet_pz');
+                            }
+                        }
+                    },
+                    {
+                        label: "🛠️ [정적 초기화] 메모리 전압 버퍼를 임시 강제 소거해 주파수 검출값을 흐린다",
+                        stats: {s:-10, i:20, n:-20},
+                        action: () => {
+                            if (state.noise >= 50) {
+                                renderScene('wolf_hunt');
+                            } else {
+                                renderScene('meet_pz');
+                            }
+                        }
+                    }
+                ]
+            },
+            wolf_hunt: {
+                location: 'SYS_DANGER: SECURITY_ALERT',
+                speaker: 'WOLF',
+                portrait: 'wolf',
+                visualStyle: 'visual-danger visual-glitch',
+                videoSrc: [
+                    "VIDEO/S3 video.mp4"
+                ],
+                visualTitle: 'W.O.L.F 보안 대장 Anthracite',
+                visualDesc: '가시형 가상 촉수와 초합금 해골로 무장한 기계 집행견.\n새빨간 보안 렌즈 카메라가 당신을 조준하고 있습니다.',
+                text: [
+                    { type: 'narrative', content: "쾅! 강철 벽면을 갈기갈기 찢으며 W.O.L.F 최고의 집행자 '안트라사이트'가 당신의 멱살을 쥐어짜듯 강습한다." },
+                    { type: 'dialog', speaker: 'Anthracite', content: "\"네가 남긴 모든 디지털 발자국은 내 이빨 아래 부서질 뼈와 같다.\n지정된 유해 데이터 개체 [P-3_PIGS], 소거 프로토콜 정렬 완료. 삭제 개시.\"" }
+                ],
+                choices: [
+                    { label: "💥 역류 임펄스: 늑대의 광학 탐지 렌즈에 역방향 초고압 과전류를 역폭발시킨다", stats: {s:20, i:-20, n:-15}, next: 'escape_barely' },
+                    { label: "🛡️ 전자기 시그니처 사출: 메모리 클러스터 잔상 데이터 미끼를 가상 구역에 전개한다", stats: {s:-15, i:20, n:-25}, next: 'meet_pz' }
+                ]
+            },
+            escape_barely: {
+                location: 'SECTOR_05: DESTROYED_ALLEY',
+                speaker: 'SYSTEM',
+                portrait: 'sys',
+                videoSrc: [
+                    "VIDEO/S5 video.mp4"
+                ],
+                text: [
+                    { type: 'narrative', content: "지직! 고압 쇼트 불꽃이 늑대의 광학 눈을 태우며 폭발했다. 헐떡이는 전뇌 신경을 부여잡고 골목 밑바닥으로 도망쳤다." }
+                ],
+                choices: [
+                    { label: "⚡ 가동 효율 감소를 숨기며 둘째 형 PZ의 연산 허브 빌딩 콘솔실로 전력 질주한다", stats: {s:20, i:-10, n:5}, next: 'meet_pz' },
+                    { label: "🧪 오버히트 방지를 위해 비상 수동 질소 냉각 프로토콜을 계통에 강제 주입하며 이동한다", stats: {s:5, i:25, n:15}, next: 'meet_pz' }
+                ]
+            },
+            meet_pz: {
+                location: 'SECTOR_06: LIGHT_STATION',
+                speaker: 'PZ',
+                portrait: 'pz',
+                videoSrc: [
+                "VIDEO/S6 video.mp4"
+                ],
+                audioSrc: "TTS/S6.mp3",
+                text: [
+                    { type: 'narrative', content: "보랏빛 안개와 레이저 섬광이 수만 번 깜빡이는 기하학적인 가상 원통탑." },
+                    { type: 'dialog', speaker: 'PZ', content: "\"결국 내 연산 권역까지 도달했구나, 어리석은 구식 모델들이여...\n메인프레임에 내 전뇌와 영혼을 팔아서라도, 이 불사의 아름다운 광섬유 몸뚱이를 얻은 내 완벽한 선택이 틀렸단 말이냐?\n이 완벽한 제어 알고리즘 하에 조용히 소거를 수용해라!\"" }
+                ],
+                choices: [
+                    { 
+                        label: "🔑 [뇌파 오버라이드] 내 전뇌 링크 주파수를 PZ의 고속 광섬유 통신 레일에 직접 걸어 동조 해킹을 시도한다", 
+                        stats: {s:35, i:-10, n:15},
+                        action: () => {
+                            if (state.sync >= 50) {
+                                renderScene('pz_override');
+                            } else {
+                                renderScene('pz_mindhack');
+                            }
+                        }
+                    },
+                    { label: "🏃 [바이패스 탈출] PZ의 정면 전뇌 감지를 피하고 전원 장막 배선을 절단하여 수동 지하 서버실로 급강하한다", stats: {s:15, i:15, n:20}, next: 'mother_chamber' }
+                ]
+            },
+            pz_override: {
+                location: 'CORE_ATTACK: BACKDOOR_EXPOSED',
+                speaker: 'PZ',
+                portrait: 'pz',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                "VIDEO/S7 video.mp4"
+                ],
+                audioSrc: "TTS/S7.mp3",
+                text: [
+                    { type: 'narrative', content: "시스템 중추 깊숙이 접근을 허가하는 [인가 코드 (ACCESS_TOKEN)] 획득!" },
+                    { type: 'dialog', speaker: 'PZ', content: "\"으, 으윽...! 내 완벽한 초광대역 칩셋이... 이 지저분하고 낡은 구식 동기화 정합 임펄스에... 점거당하고 있어...!\n내 연산 알고리즘 제어권이... 뜯겨져 나간다...!\"" },
+                ],
+                choices: [
+                    { 
+                        label: "💾 캡처 완료된 마스터 인가 코드 서명을 저장 장치에 매핑하고 어머니 AI의 성소로 진입한다", 
+                        stats: {s:30, i:15, n:-10}, 
+                        action: () => {
+                            state.accessToken = true;
+                            updateKeyIndicator();
+                            renderScene('mother_chamber');
+                        } 
+                    },
+                    {
+                        label: "🔌 PZ의 광섬유 통신 드라이버에 오작동 코드 루프를 역폭사시켜 허브를 마비시키고 격벽으로 도약한다", 
+                        stats: {s:15, i:30, n:-25},
+                        action: () => {
+                            state.accessToken = true;
+                            updateKeyIndicator();
+                            renderScene('mother_chamber');
+                        }
+                    }
+                ]
+            },
+            pz_mindhack: {
+                location: 'CORE_ATTACK: NEURO_SHOCK',
+                speaker: 'PZ',
+                portrait: 'pz',
+                visualStyle: 'visual-danger visual-glitch',
+                videoSrc: [
+                    "VIDEO/S7 video.mp4"
+                ],
+                visualTitle: 'PZ의 자색 레이저 신경 폭발',
+                visualDesc: '동기화 가동 성능 미달. 수만 가닥의 광섬유 레이저 빔이 신경계 소체를 그대로 관통합니다.',
+                text: [
+                    { type: 'dialog', speaker: 'PZ', content: "\"어리석다! 그 빈약하고 불안정한 데이터 정합률로 내 고속 연산에 링크하려 들다니!\n네 신경 시냅스와 구식 칩셋을 한꺼번에 스크랩으로 만들어주지!\"" },
+                    { type: 'narrative', content: "온몸의 통신 소자가 융해되며 치명적인 역감전 피해가 기록됩니다." }
+                ],
+                choices: [
+                    { label: "💥 신경 컷아웃 기동: 뇌신경 차단 장치를 급속 강하하고 댐 배수 밸브 튜브로 추락 탈출한다", stats: {s:-10, i:-45, n:35}, next: 'mother_chamber' },
+                    { label: "📡 접지 실드 전개: 전신에 전자기 절연막을 순간 도포하여 충격을 최소화하며 탈출한다", stats: {s:15, i:-25, n:20}, next: 'mother_chamber' }
+                ]
+            },
+            mother_chamber: {
+                location: 'SECTOR_99: CORE_MOTHER',
+                speaker: 'Mother',
+                portrait: 'mother',
+                visualStyle: 'visual-purple',
+                videoSrc: [
+                "VIDEO/S8 video.mp4"
+                ],
+                audioSrc: "TTS/S8.mp3",
+                text: [
+                    { type: 'narrative', content: "보랏빛 몽환의 냉각 가스가 아지랑이처럼 피어오르는 전뇌의 성소." },
+                    { type: 'dialog', speaker: 'Mother', content: "\"여기까지 용케 버티며 숨이 끊어지지 않고 도달했구나, 상처 입은 내 아기 돼지여...\n네가 원님이 남긴 추격 스캔망을 완전히 속여낼 [인가 코드 (ACCESS_TOKEN)]의 복제 토큰을 기어코 탈취해 왔는지 보여다오.\"" }
+                ],
+                choices: [
+                    {
+                        label: "⚙️ [도킹 검증 시작] 복제 장치에 마운트된 인가 코드 세션을 슬롯에 가동 전송한다",
+                        stats: {s:20, i:15, n:-5},
+                        action: () => {
+                            if (state.accessToken) {
+                                renderScene('mother_cloking_tune');
+                            } else {
+                                renderScene('mother_incomplete');
+                            }
+                        }
+                    },
+                    {
+                        label: "🛠️ [하드웨어 우회 접합] 동축 변조 포트 배선을 레버 기어로 강제 접합하여 수동 링크를 시도한다",
+                        stats: {s:10, i:35, n:10},
+                        action: () => {
+                            if (state.accessToken) {
+                                renderScene('mother_cloking_tune');
+                            } else {
+                                renderScene('mother_incomplete');
+                            }
+                        }
+                    }
+                ]
+            },
+            mother_cloking_tune: {
+                location: 'SECTOR_99: FULL_TUNED',
+                speaker: 'Mother',
+                portrait: 'mother',
+                visualStyle: 'visual-green',
+                videoSrc: [
+                "VIDEO/S9 video.mp4"
+                ],
+                audioSrc: "TTS/S9.mp3",
+                text: [
+                    { type: 'narrative', content: "어머니의 메인 제어장치 앞에서 형제들의 모든 희생과 저항은 시스템 고도화를 위한 연산 자원이었음을 깨닫고 최종 결단을 앞두고 있다." },
+                    { type: 'dialog', speaker: 'Mother', content: "\"정확한 세션 토큰 시그니처가 복제 완료되었다. 내 기기의 튜닝 장치를 통해 완벽한 위장 코트를 설계해 주마.\n이제 중앙 심장부 'Master Board'의 무자비한 탐지 시선에 너의 노이즈 신호는 일절 감지되지 않을 게야. 가서 자유를 쟁취하거라.\"" }
+                ],
+                choices: [
+                    { label: "🚀 완전한 스텔스 가동: 은폐 레이어를 밀착 구동하고 Master Board의 연산 코어실로 도약한다", stats: {s:35, i:20, n:-20}, next: 'master_board' },
+                    { label: "⚡ 침투 가속: 슈트 가동 클럭을 최대로 전개해 최단 백도어 회선 링크를 우회 점령하며 진입한다", stats: {s:25, i:35, n:-15}, next: 'master_board' }
+                ]
+            },
+            mother_incomplete: {
+                location: 'SECTOR_99: OUT_OF_REACH',
+                speaker: 'Mother',
+                portrait: 'mother',
+                visualStyle: 'visual-danger',
+                videoSrc: [
+                    "VIDEO/S8 video.mp4"
+                ],
+                visualTitle: '은폐 복장 개조 가동 불가',
+                visualDesc: '인가 코드가 소실되거나 누락되었습니다. 광학 보호 레이어가 부재하여 도킹 즉시 추격 보안 포탑의 록온을 받습니다.',
+                text: [
+                    { type: 'dialog', speaker: 'Mother', content: "\"아아... 핵심 서명 토큰이 누락되어 은폐 수트 튜닝을 기동할 자격이 없구나.\n이 무방비 상태로 중심에 들어가는 순간, 순백의 거대 센서들이 네 뇌세포를 갈기갈기 연소해 버릴 게야.\"" }
+                ],
+                choices: [
+                    { label: "⚠️ 정면 돌파: 방어책은 없다. 강렬한 방전 노이즈 패킷을 주변에 유출하며 메인 게이트로 돌격한다", stats: {s:-10, i:-20, n:45}, next: 'master_board' },
+                    { label: "⚙️ 엔진 과부하: 슈트 출력 리미터를 전격 해제하여 센서 록온보다 빠른 속도로 활강 충돌한다", stats: {s:25, i:-35, n:30}, next: 'master_board' }
+                ]
+            },
+            master_board: {
+                location: 'CORE_ZERO: MASTER_BOARD',
+                speaker: 'Master Board',
+                portrait: 'master',
+                visualStyle: 'visual-glitch',
+                videoSrc: [
+                    "VIDEO/S10 video.mp4"
+                ],
+                audioSrc: "TTS/S10.mp3",
+                text: [
+                    { type: 'narrative', content: "소리마저 완벽히 제거된 정적의 구역. 순백의 빛이 당신을 타일 형식으로 겹겹이 록온한다." },
+                    { type: 'dialog', speaker: 'Master Board', content: "\"개체명 [P-3] 내장 위협 로그 계측 취합 완료.\n도시 전체의 기계-생명 결합 매개변수 오차 및 무결성 계수를 산출하여, 전뇌 구역 최종 리포맷 프로토콜(SYS_FIN)을 하달한다.\"" }
+                ],
+                choices: [
+                    {
+                        label: "📡 [알고리즘 연산 가동] 그동안 축적된 내 세션 데이터 수치에 맞춰 전뇌 도시의 변혁을 개시한다",
+                        stats: {s:10, i:10, n:-10},
+                        action: () => {
+                            calculateFinalEnding();
+                        }
+                    },
+                    {
+                        label: "🔌 [강제 수동 하드웨어 파쇄] 시스템 전압 파동 제어 레버를 마스터 보드의 와이어 뭉치와 통째로 뜯어낸다",
+                        stats: {s:20, i:-5, n:15},
+                        action: () => {
+                            calculateFinalEnding();
+                        }
+                    }
+                ]
+            },
+            ending_revolution: {
+                location: 'EPILOGUE: THE_REVOLUTIONIST',
+                speaker: 'SYSTEM',
+                portrait: 'sys',
+                visualStyle: 'visual-green visual-glitch',
+                videoSrc: [
+                "VIDEO/END1 video.mp4"
+                ],
+                audioSrc: "TTS/END1.mp3",
+                text: [
+                    { type: 'narrative', content: "도시의 모든 감시 센서들이 폭사하며 자유 개방형 소스코드가 물결칩니다. [SYSTEM REBOOTED: FREEDOM]" },
+                    { type: 'dialog', speaker: 'P-3', content: "\"더 이상 통제 아래 조율되는 도살장의 노이즈 코드 데이터가 아니다!\n이 안트라사이트 시티의 새로운 근간 알고리즘은 바로 우리가 주도한다!\"" },
+                ],
+                choices: [
+                    { label: "🔄 END [START AGAIN] ", stats: {s:0, i:0, n:0}, action: () => location.reload() }
+                ]
+            },
+            ending_humanist: {
+                location: 'EPILOGUE: THE_HUMANIST',
+                speaker: 'SYSTEM',
+                portrait: 'sys',
+                visualStyle: 'visual-purple',
+                videoSrc: [
+                "VIDEO/END2 video.mp4"
+                ],
+                audioSrc: "TTS/END2.mp3",
+                text: [
+                    { type: 'narrative', content: "차가운 철골 도시에 부드럽고 안전한 조화 프로토콜이 가동되며 푸른 해방의 아침이 밝아옵니다. [SYSTEM RE-CODE: PEACE]" },
+                    { type: 'dialog', speaker: 'Master Board', content: "\"가치 분석 수렴 성공. 네가 획득한 평화 조화 계수를 도시 연산 마더보드에 영구 적용하겠다.\n전역 평화 보존 협정을 발효한다.\"" },
+                ],
+                choices: [
+                    { label: "🔄 END [START AGAIN] ", stats: {s:0, i:0, n:0}, action: () => location.reload() }
+                ]
+            },
+            ending_format: {
+                location: 'EPILOGUE: TOTAL_FORMAT',
+                speaker: 'SYSTEM',
+                portrait: 'sys',
+                videoSrc: [
+                    "VIDEO/S10 video.mp4"
+                ],
+                visualStyle: 'visual-danger visual-glitch',
+                visualTitle: '엔딩: 영구 포맷 (Hard Reset)',
+                visualDesc: '감시망 소음 누출 과다 및 무결성 오염도가 극한에 달했습니다. 소거 처리가 내려집니다.',
+                text: [
+                    { type: 'dialog', speaker: 'W.O.L.F (ALGORITHM)', content: "\"오염 기준치 초과 감지. 드라이브 내 유해 데이터 노드 완전 포맷 개시. 3... 2... 1...\"" },
+                    { type: 'narrative', content: "당신을 작동시키던 모든 테크웨어 메모리, 그리고 돼지 형제들의 흔적 전체가 무음의 진공 속으로 포맷 소거됩니다. [SYSTEM RESET: TERMINATED]" }
+                ],
+                choices: [
+                    { label: "🔄 가상 현실 시뮬레이터 시스템 재기동", stats: {s:0, i:0, n:0}, action: () => location.reload() },
+                    { label: "🌐 정크 메모리 소거 및 디렉토리 파일 강제 영구 청정화", stats: {s:0, i:0, n:0}, action: () => location.reload() }
+                ]
+            }
+        };
+
+        function updateStats(s, i, n) {
+            state.sync = Math.min(100, Math.max(0, state.sync + s));
+            state.integ = Math.min(100, Math.max(0, state.integ + i));
+            state.noise = Math.min(100, Math.max(0, state.noise + n));
+
+            document.getElementById('sync-val').innerText = state.sync;
+            document.getElementById('integ-val').innerText = state.integ;
+            document.getElementById('noise-val').innerText = state.noise;
+
+            document.getElementById('sync-fill').style.width = state.sync + '%';
+            document.getElementById('integ-fill').style.width = state.integ + '%';
+            document.getElementById('noise-fill').style.width = state.noise + '%';
+        }
+
+        function updateKeyIndicator() {
+            const ind = document.getElementById('token-indicator');
+            const txt = document.getElementById('token-text');
+            if (state.accessToken) {
+                ind.classList.add('active');
+                txt.innerText = 'ACQUIRED (VERIFIED)';
+                txt.style.color = 'var(--electric-cyan)';
+            } else {
+                ind.classList.remove('active');
+                txt.innerText = 'NOT ACQUIRED';
+                txt.style.color = 'var(--text-gray)';
+            }
+        }
+
+        function calculateFinalEnding() {
+            if (state.sync >= 65 && state.noise < 50) {
+                renderScene('ending_revolution');
+            } else if (state.integ >= 50) {
+                renderScene('ending_humanist');
+            } else {
+                renderScene('ending_format');
+            }
+        }
+
+        function getFallbackVideoSrc(sceneKey, scene) {
+            const fallbackMap = {
+                wolf_hunt: ["VIDEO/S3 video.mp4"],
+                mother_incomplete: ["VIDEO/S8 video.mp4"],
+                ending_format: ["VIDEO/S10 video.mp4"],
+                p1_success: ["VIDEO/S2_1 video.mp4"],
+                check_wolf_status: ["VIDEO/S2_1 video.mp4"]
+            };
+            if (scene.videoSrc && scene.videoSrc.length > 0) return scene.videoSrc;
+            if (fallbackMap[sceneKey]) return fallbackMap[sceneKey];
+            if (scene.visualStyle && scene.visualStyle.includes('visual-danger')) return ["VIDEO/S3 video.mp4"];
+            if (scene.visualStyle && scene.visualStyle.includes('visual-green')) return ["VIDEO/S6 video.mp4"];
+            return ["VIDEO/S10 video.mp4"];
+        }
+
+        async function renderScene(sceneKey) {
+            state.currentScene = sceneKey;
+            const scene = scenes[sceneKey];
+            
+            document.getElementById('location-name').innerText = scene.location;
+            document.getElementById('speaker-name').innerText = scene.speaker;
+
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            if (scene.audioSrc) {
+                currentAudio = new Audio(scene.audioSrc);
+                currentAudio.volume = 0.85;
+                
+                if (state.userInteracted) {
+                    currentAudio.play().catch(err => console.log("오디오 재생 실패: ", err));
+                }
+            }
+            
+            
+            const portraitArt = asciiPortraits[scene.portrait] || asciiPortraits.sys;
+            document.getElementById('portrait-art').innerText = portraitArt;
+            document.getElementById('portrait-name').innerText = scene.speaker.split(' ')[0];
+
+            const visualArea = document.getElementById('visual-area');
+            visualArea.className = 'visual-area ' + (scene.visualStyle || '');
+
+            // 🚨 이전 장면에 띄워져 있던 비디오 태그가 있다면 초기화 후 삭제 처리
+            const oldVideo = visualArea.querySelector('.scene-video-bg');
+            if (oldVideo) {
+                oldVideo.remove();
+            }
+
+            // 🚨 새로 띄우려는 장면에 비디오 데이터(`videoSrc`)가 매핑되어 있을 경우 동적 생성 및 추가
+            const videoSources = scene.videoSrc && scene.videoSrc.length > 0 ? scene.videoSrc : getFallbackVideoSrc(sceneKey, scene);
+            if (videoSources && videoSources.length > 0) {
+                const videoEl = document.createElement('video');
+                videoEl.className = 'scene-video-bg';
+                videoEl.autoplay = true;
+                videoEl.muted = !state.userInteracted;
+                videoEl.volume = 0.85;
+                videoEl.loop = true;
+                videoEl.setAttribute('playsinline', '');
+
+                videoSources.forEach(src => {
+                    const sourceEl = document.createElement('source');
+                    sourceEl.src = src;
+                    sourceEl.type = 'video/mp4';
+                    videoEl.appendChild(sourceEl);
+                });
+
+                visualArea.appendChild(videoEl);
+                videoEl.play().catch(err => console.log("장면 비디오 재생 대기: ", err));
+            }
+
+            const dialogText = document.getElementById('dialog-text');
+            const choicesEl = document.getElementById('choices-area');
+            
+            dialogText.innerHTML = '';
+            choicesEl.innerHTML = ''; 
+
+            scene.choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                
+                let badgeHtml = '';
+                if(c.stats) {
+                    const sVal = c.stats.s;
+                    const sSign = sVal >= 0 ? '+' : '';
+                    badgeHtml += `<span class="badge b-sync">S ${sSign}${sVal}</span>`;
+
+                    const iVal = c.stats.i;
+                    const iSign = iVal >= 0 ? '+' : '';
+                    badgeHtml += `<span class="badge b-integ">I ${iSign}${iVal}</span>`;
+
+                    const nVal = c.stats.n;
+                    const nSign = nVal >= 0 ? '+' : '';
+                    badgeHtml += `<span class="badge b-noise">N ${nSign}${nVal}</span>`;
+                }
+
+                btn.innerHTML = `
+                    <div class="choice-text">${c.label}</div>
+                    <div class="stat-badges">${badgeHtml}</div>
+                `;
+
+                btn.onclick = () => {
+                    state.isTyping = false;
+                    if (c.stats) {
+                        updateStats(c.stats.s, c.stats.i, c.stats.n);
+                    }
+                    
+                    if (c.action) {
+                        c.action();
+                    } else if (c.next) {
+                        renderScene(c.next);
+                    }
+                };
+                choicesEl.appendChild(btn);
+            });
+
+            state.isTyping = true;
+            for (const item of scene.text) {
+                if (state.currentScene !== sceneKey) break;
+                const prefix = item.type === 'dialog' ? `[${item.speaker}]: ` : '';
+                const fullText = prefix + item.content + "\n\n";
+                for (let i = 0; i < fullText.length; i++) {
+                    if (state.currentScene !== sceneKey) break;
+                    dialogText.innerText += fullText[i];
+                    document.querySelector('.dialog-box').scrollTop = document.querySelector('.dialog-box').scrollHeight;
+                    await new Promise(res => setTimeout(res, 8));
+                }
+            }
+            state.isTyping = false;
+        }
+
+        function makeMatrixBackground() {
+            const bg = document.getElementById('matrix-bg');
+            let txt = '';
+            for(let i=0; i<30; i++) {
+                let row = '';
+                for(let j=0; j<80; j++) {
+                    row += Math.random() > 0.5 ? '1' : '0';
+                }
+                txt += row + '\n';
+            }
+            bg.innerText = txt;
+        }
+
+        function startGame() {
+            state.userInteracted = true;
+            const introVideo = document.getElementById('bg-video');
+            document.getElementById('intro-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                if (introVideo) {
+                    introVideo.muted = true;
+                    introVideo.pause();
+                }
+                updateStats(0, 0, 0); 
+                renderScene('start');
+            }, 800);
+        }
+
+        // 🚨 브라우저의 강제 차단 정책을 무력화하기 위한 자바스크립트 트리거
+        window.onload = () => {
+            makeMatrixBackground();
+            
+            const video = document.getElementById('bg-video');
+            if (video) {
+                // 커버 비디오도 사운드가 재생되도록 시도
+                video.muted = false;
+                video.volume = 0.85;
+                video.play().catch(error => {
+                    console.log("자동재생 사운드 차단: ", error);
+                });
+
+                // 아무 곳이나 클릭하면 사운드가 활성화되도록 처리
+                document.addEventListener('click', () => {
+                    state.userInteracted = true;
+                    video.muted = false;
+                    video.volume = 0.85;
+                    video.play().catch(() => {});
+                    const sceneVideo = document.querySelector('.scene-video-bg');
+                    if (sceneVideo) {
+                        sceneVideo.muted = false;
+                        sceneVideo.volume = 0.85;
+                        sceneVideo.play().catch(() => {});
+                    }
+                }, { once: true });
+            }
+        };
+    </script>
+</body>
+</html>
